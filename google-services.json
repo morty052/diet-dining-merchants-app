@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1093771167628",
+    "project_id": "diet-dining-merchants-app",
+    "storage_bucket": "diet-dining-merchants-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093771167628:android:8f8f8e5880620e409af8a9",
+        "android_client_info": {
+          "package_name": "com.dietdining.merchantapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbTal0xVNXkKzkj_TFbEQbZCBE5ZDoeQc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
