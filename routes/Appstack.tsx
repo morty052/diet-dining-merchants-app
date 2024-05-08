@@ -165,10 +165,12 @@ const Appstack = ({ ONBOARDED }: { ONBOARDED: boolean }) => {
       <Stack.Screen
         options={{
           headerLeft: () => <BackButton />,
-          title: "Menu",
+          title: "",
           headerTitleStyle: { color: "white" },
           headerTitleAlign: "center",
           // headerShown: false,
+          headerBackTitleVisible: false,
+          headerBackVisible: false,
         }}
         name="StoreMenu"
         component={StoreMenu}

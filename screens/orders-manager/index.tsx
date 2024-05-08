@@ -94,27 +94,5 @@ const PendingOrdersView = () => {
 };
 
 export const OrdersManager = (props: Props) => {
-  const isAffiliate = getItem("affiliate");
-
-  if (isAffiliate) {
-    return <AffiliateOrdersStack />;
-  }
-
-  return (
-    <Screen>
-      <View className="flex flex-row justify-between mb-4 max-h-12">
-        <FilterButton title="All" />
-        <FilterButton title="Pending" />
-        <FilterButton title="Completed" />
-        <FilterButton title="Cancelled" />
-      </View>
-      <SearchBar />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="All" component={AllOrdersView} />
-        <Stack.Screen name="Pending" component={PendingOrdersView} />
-        <Stack.Screen name="Completed" component={PendingOrdersView} />
-        <Stack.Screen name="Cancelled" component={PendingOrdersView} />
-      </Stack.Navigator>
-    </Screen>
-  );
+  return <AffiliateOrdersStack />;
 };

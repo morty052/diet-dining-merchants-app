@@ -120,10 +120,11 @@ function Preview() {
 
 export const AffiliateStoreManager = ({ navigation }: any) => {
   const store_name = getItem("store_name");
+  const store_image = getItem("store_image");
   return (
     <SafeAreaView style={styles.container}>
       <Image
-        source={require("../../assets/splash.png")}
+        source={{ uri: store_image }}
         style={{ width: "100%", height: 300 }}
       />
       <View
