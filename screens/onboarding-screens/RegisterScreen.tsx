@@ -13,13 +13,12 @@ import { SEMI_BOLD } from "../../constants/fontNames";
 import { useSignIn } from "@clerk/clerk-expo";
 import { useSignUp } from "@clerk/clerk-expo";
 
-type Props = {};
-
 const RegisterScreen = ({ navigation }: any) => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [error, setError] = React.useState("");
 
-  const { isLoaded, signIn, setActive } = useSignIn();
+  const { isLoaded } = useSignIn();
 
   const { signUp } = useSignUp();
 
@@ -67,7 +66,6 @@ const RegisterScreen = ({ navigation }: any) => {
   // }
 
   const onSignUpPress = async () => {
-    const isAdmin = email?.includes("@dietdining.org");
     if (!isLoaded) {
       return;
     }
@@ -81,25 +79,18 @@ const RegisterScreen = ({ navigation }: any) => {
       // send the email.
       await signUp?.prepareEmailAddressVerification({ strategy: "email_code" });
 
-      if (isAdmin) {
-        setEmail("");
-        setPassword("");
-        return navigation.navigate("OtpScreen", {
-          emailAddress: email,
-          isAdmin: true,
-          isRegister: true,
-        });
-      }
-
       // * Handle affiliate sign up
       setEmail("");
       setPassword("");
+      // * set registration as true
+      // * pass email address to otp screen
       navigation.navigate("OtpScreen", {
         emailAddress: email,
         isRegister: true,
       });
     } catch (err: any) {
-      console.error(JSON.stringify(err, null, 2));
+      console.error(JSON.stringify(err.errors, null, 2));
+      setError(err.errors[0].longMessage.replace("_", " "));
     }
   };
 
@@ -108,6 +99,7 @@ const RegisterScreen = ({ navigation }: any) => {
       style={[StyleSheet.absoluteFill, { backgroundColor: Colors.darkGrey }]}
     >
       <SafeAreaView style={{ flex: 1 }}>
+        {/* <Text style={{ color: "white" }}>{JSON.stringify(error, null, 2)}</Text> */}
         <KeyboardAvoidingView>
           <View style={styles.container}>
             <View style={styles.innerContainer}>
@@ -137,6 +129,7 @@ const RegisterScreen = ({ navigation }: any) => {
                   Enter the email linked to your account
                 </Text>
                 <TextInput
+                  onFocus={() => setError("")}
                   value={email}
                   onChangeText={(text) => setEmail(text)}
                   style={styles.input}
@@ -152,6 +145,7 @@ const RegisterScreen = ({ navigation }: any) => {
                   Enter account password
                 </Text>
                 <TextInput
+                  onFocus={() => setError("")}
                   value={password}
                   onChangeText={(text) => setPassword(text)}
                   secureTextEntry
@@ -171,6 +165,11 @@ const RegisterScreen = ({ navigation }: any) => {
                   Password must be 8 characters or more
                 </Text>
               </View>
+              {error && (
+                <Text style={{ color: "red", textAlign: "center" }}>
+                  {error}
+                </Text>
+              )}
             </View>
 
             <View style={{ gap: 20 }}>

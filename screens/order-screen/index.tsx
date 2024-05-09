@@ -14,6 +14,7 @@ import BackButton from "../../components/ui/BackButton";
 import { SEMI_BOLD } from "../../constants/fontNames";
 import React from "react";
 import { baseUrl } from "../../constants/baseUrl";
+import { getItem } from "../../utils/storage";
 
 type ProductProps = {
   name: string;
@@ -81,28 +82,23 @@ export const OrderScreen = ({
 
   const { completed, waiting, pending, cancelled } = status;
 
-  console.info(status);
-
   const handleCompleteOrder = async () => {
+    const affiliate_id = getItem("affiliate_id");
+
     if (loading) {
       return;
     }
     setLoading(true);
     try {
-      let status = {
-        completed: true,
-        pending: false,
-        cancelled: false,
-      };
-
-      const res = await fetch(`${baseUrl}/orders/update-status`, {
+      const res = await fetch(`${baseUrl}/orders/ready-for-pickup`, {
         method: "POST",
-        body: JSON.stringify({ status, _id: order_id }),
+        body: JSON.stringify({ affiliate_id, order_id }),
         headers: {
           "Content-Type": "application/json",
         },
       });
       const data = await res.json();
+      console.log({ data });
       navigation.setParams({
         status,
       });

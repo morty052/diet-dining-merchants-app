@@ -123,7 +123,7 @@ const App = (props: Props) => {
   }
 
   return (
-    <ClerkProvider publishableKey="pk_test_Zmxvd2luZy1waXJhbmhhLTQ4LmNsZXJrLmFjY291bnRzLmRldiQ">
+    <ClerkProvider publishableKey="pk_test_c3VtbWFyeS1kYW5lLTg3LmNsZXJrLmFjY291bnRzLmRldiQ">
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <NavigationContainer>

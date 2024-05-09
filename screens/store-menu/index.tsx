@@ -2,9 +2,11 @@ import {
   StyleSheet,
   Text,
   View,
-  Image,
   ScrollView,
   Pressable,
+  SectionList,
+  DefaultSectionT,
+  SectionListData,
 } from "react-native";
 import React from "react";
 import Colors from "../../constants/colors";
@@ -16,6 +18,8 @@ import { useQuery } from "@tanstack/react-query";
 import { TextInput } from "react-native-gesture-handler";
 import { ProductCard } from "../../components/cards/ProductCard";
 import { SEMI_BOLD } from "../../constants/fontNames";
+import { Ionicons } from "@expo/vector-icons";
+import LoadingScreen from "../../components/ui/LoadingScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -25,7 +29,7 @@ const store_image = getItem("store_image");
 
 export type menu = {
   title: string;
-  products: ProductProps[];
+  data: ProductProps[];
 };
 
 export type categoryProps = {
@@ -34,13 +38,24 @@ export type categoryProps = {
   menus: string[];
 };
 
-async function fetchMenu(): Promise<menu[] | []> {
+async function fetchMenu() {
   const store_id = getItem("store_id");
   const res = await fetch(
     `${baseUrl}/affiliates/get-affiliate-menu?store_id=${store_id}`
   );
   const data = await res.json();
-  const { menus } = data;
+  const { menus: menusData } = data;
+
+  console.info(menusData);
+
+  const menus = menusData.map(
+    (menu: { title: string; products: ProductProps[] }) => {
+      return {
+        title: menu.title,
+        data: menu.products,
+      };
+    }
+  );
 
   return menus;
 }
@@ -56,29 +71,65 @@ async function fetchProducts(): Promise<ProductProps[] | []> {
   return products;
 }
 
-async function fetchCategories(): Promise<categoryProps[] | []> {
+async function fetchCategories(): Promise<
+  { title: string; data: ProductProps[] }[] | []
+> {
   const store_id = getItem("store_id");
   const res = await fetch(
     `${baseUrl}/affiliates/get-affiliate-categories?store_id=${store_id}`
   );
   const data = await res.json();
-  const { categories } = data;
+  const { categories: categoriesData }: { categories: categoryProps[] } = data;
+
+  const categories = categoriesData.map((category) => {
+    return {
+      title: category.title,
+      data: category.products,
+    };
+  });
 
   return categories;
 }
 
-const Menus = (props: Props) => {
+const SearchInput = ({
+  query,
+  setQuery,
+  placeholder,
+}: {
+  query: string;
+  setQuery: React.Dispatch<React.SetStateAction<string>>;
+  placeholder: string;
+}) => {
   return (
-    <View style={styles.container}>
-      <Image
-        source={{ uri: store_image }}
-        style={{ width: "100%", height: 300 }}
+    <View
+      style={{
+        backgroundColor: Colors.lightBlack,
+        borderRadius: 5,
+        height: 50,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 10,
+      }}
+    >
+      <Ionicons name="search" size={30} color={Colors.muted} />
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder={placeholder}
+        placeholderTextColor={Colors.muted}
+        style={{
+          color: "white",
+          paddingHorizontal: 10,
+          borderRadius: 5,
+          height: 50,
+          width: "100%",
+        }}
       />
-      <Text>StoreMenu</Text>
     </View>
   );
 };
-const Overview = (props: Props) => {
+
+const Menus = (props: Props) => {
   const {
     data: menus,
     isLoading,
@@ -86,12 +137,86 @@ const Overview = (props: Props) => {
   } = useQuery({ queryKey: ["menus"], queryFn: fetchMenu });
 
   if (isLoading) {
-    return <Text>Loading...</Text>;
+    return <LoadingScreen />;
+  }
+
+  return (
+    <View style={styles.container}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingBottom: 10,
+        }}
+      >
+        <Text style={{ color: "white", fontFamily: SEMI_BOLD, fontSize: 20 }}>
+          Menus
+        </Text>
+        <Pressable
+          style={{
+            backgroundColor: Colors.primary,
+            width: 100,
+            height: 30,
+            borderRadius: 20,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: "white", fontFamily: SEMI_BOLD }}>Add New</Text>
+        </Pressable>
+      </View>
+      <SectionList
+        contentContainerStyle={{ paddingBottom: 20, gap: 10 }}
+        sections={menus as SectionListData<ProductProps, DefaultSectionT>[]}
+        renderSectionHeader={({ section: { title } }) => (
+          <View>
+            <Text
+              style={{ color: "white", fontFamily: SEMI_BOLD, fontSize: 20 }}
+            >
+              {title}
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{ color: "white", fontFamily: SEMI_BOLD, fontSize: 16 }}
+              >
+                10:00 AM - 9:00 PM
+              </Text>
+              <Text
+                style={{ color: "white", fontFamily: SEMI_BOLD, fontSize: 16 }}
+              >
+                Mon-Fri
+              </Text>
+            </View>
+          </View>
+        )}
+        renderItem={({ item, section }) => <ProductCard product={item} />}
+      />
+    </View>
+  );
+};
+const Overview = (props: Props) => {
+  const {
+    data: categories,
+    isLoading,
+    isError,
+  } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
+
+  if (isLoading) {
+    return <LoadingScreen />;
   }
 
   if (isError) {
     return <Text>Something went wrong</Text>;
   }
+
+  console.info(categories);
 
   return (
     <View style={styles.container}>
@@ -106,18 +231,18 @@ const Overview = (props: Props) => {
           height: 50,
         }}
       />
-      {menus?.map((menu, index) => (
-        <View key={index}>
-          <Text style={{ color: "white" }}>{menu.title}</Text>
-          <View>
-            {menu.products.map((product, index) => (
-              <Text style={{ color: "white" }} key={index}>
-                {product.name}
-              </Text>
-            ))}
-          </View>
-        </View>
-      ))}
+      <SectionList
+        contentContainerStyle={{ paddingBottom: 20, gap: 10 }}
+        sections={
+          categories as SectionListData<ProductProps, DefaultSectionT>[]
+        }
+        renderSectionHeader={({ section: { title } }) => (
+          <Text style={{ color: "white", fontFamily: SEMI_BOLD, fontSize: 20 }}>
+            {title}
+          </Text>
+        )}
+        renderItem={({ item, section }) => <ProductCard product={item} />}
+      />
     </View>
   );
 };
@@ -130,14 +255,6 @@ const StoreItems = () => {
     isError,
   } = useQuery({ queryKey: ["items"], queryFn: fetchProducts });
 
-  if (isLoading) {
-    return <Text>Loading...</Text>;
-  }
-
-  if (isError) {
-    return <Text>Something went wrong</Text>;
-  }
-
   const queryResults = React.useMemo(() => {
     if (!query) {
       return products;
@@ -149,6 +266,14 @@ const StoreItems = () => {
 
     return product;
   }, [query, products]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (isError) {
+    return <Text>Something went wrong</Text>;
+  }
 
   return (
     <View style={styles.container}>
@@ -188,18 +313,10 @@ const StoreItems = () => {
           </Text>
         )}
       </View>
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
+      <SearchInput
         placeholder="Search Items"
-        placeholderTextColor="white"
-        style={{
-          color: "white",
-          backgroundColor: Colors.lightBlack,
-          paddingHorizontal: 10,
-          borderRadius: 5,
-          height: 50,
-        }}
+        query={query}
+        setQuery={setQuery}
       />
       <ScrollView
         keyboardDismissMode="on-drag"
@@ -218,6 +335,101 @@ const StoreItems = () => {
   );
 };
 
+const Categories = (props: Props) => {
+  const [query, setQuery] = React.useState("");
+  const {
+    data: categories,
+    isLoading,
+    isError,
+  } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
+
+  const queryResults = React.useMemo(() => {
+    if (!query) {
+      return categories;
+    }
+
+    const results = categories?.filter((category) =>
+      category.title.toLowerCase().includes(query.toLowerCase())
+    );
+
+    return results;
+  }, [query, categories]);
+
+  if (isLoading) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (isError) {
+    return <Text>Something went wrong</Text>;
+  }
+
+  return (
+    <View style={styles.container}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingBottom: 10,
+        }}
+      >
+        {!query && (
+          <Text style={{ color: "white", fontFamily: SEMI_BOLD, fontSize: 20 }}>
+            All items
+          </Text>
+        )}
+        {!query && (
+          <Pressable
+            style={{
+              backgroundColor: Colors.primary,
+              width: 100,
+              height: 30,
+              borderRadius: 20,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "white", fontFamily: SEMI_BOLD }}>
+              Add New
+            </Text>
+          </Pressable>
+        )}
+      </View>
+      {query && (
+        <Text style={{ color: "white", fontFamily: SEMI_BOLD, fontSize: 20 }}>
+          {queryResults?.length} result
+          {queryResults && queryResults?.length > 1 ? "s" : ""}
+        </Text>
+      )}
+      <SearchInput
+        placeholder="Search Categories"
+        query={query}
+        setQuery={setQuery}
+      />
+      <SectionList
+        contentContainerStyle={{ paddingBottom: 20, gap: 10 }}
+        sections={
+          queryResults as SectionListData<ProductProps, DefaultSectionT>[]
+        }
+        renderSectionHeader={({ section: { title } }) => (
+          <Text style={{ color: "white", fontFamily: SEMI_BOLD, fontSize: 20 }}>
+            {title}
+          </Text>
+        )}
+        renderItem={({ item, section }) => <ProductCard product={item} />}
+      />
+    </View>
+  );
+};
+
+function Customs() {
+  return (
+    <View>
+      <View></View>
+    </View>
+  );
+}
+
 export const StoreMenu = (props: Props) => {
   return (
     <Tab.Navigator
@@ -228,11 +440,71 @@ export const StoreMenu = (props: Props) => {
         tabBarActiveTintColor: Colors.primary,
       }}
     >
-      <Tab.Screen name="Menus" component={Menus} />
-      <Tab.Screen name="Items" component={StoreItems} />
-      <Tab.Screen name="Overview" component={Overview} />
-      <Tab.Screen name="Categories" component={Menus} />
-      <Tab.Screen name="Customizations" component={Menus} />
+      <Tab.Screen
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              color={!focused ? "white" : Colors.primary}
+              name="file-tray-full-outline"
+              size={24}
+            />
+          ),
+        }}
+        name="Menus"
+        component={Menus}
+      />
+      <Tab.Screen
+        name="Items"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              color={!focused ? "white" : Colors.primary}
+              name="bag"
+              size={24}
+            />
+          ),
+        }}
+        component={StoreItems}
+      />
+      <Tab.Screen
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              color={!focused ? "white" : Colors.primary}
+              name="home"
+              size={24}
+            />
+          ),
+        }}
+        name="Overview"
+        component={Overview}
+      />
+      <Tab.Screen
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              color={!focused ? "white" : Colors.primary}
+              name="albums"
+              size={24}
+            />
+          ),
+        }}
+        name="Categories"
+        component={Categories}
+      />
+      <Tab.Screen
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              color={!focused ? "white" : Colors.primary}
+              name="settings"
+              size={24}
+            />
+          ),
+        }}
+        name="Customs"
+        component={Menus}
+      />
     </Tab.Navigator>
   );
 };

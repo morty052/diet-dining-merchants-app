@@ -7,20 +7,19 @@ import {
   GenerateOtpScreen,
   LoginPage,
   OrderScreen,
-  OrdersManager,
   QuickLinks,
   SettingsScreen,
   StoreMenu,
 } from "../screens";
 import PassCodeScreen from "../screens/passcode-screen";
 import IdentifyMealScreen from "../components/image-analyzer";
-import PreviewStoreRoutes from "./PreviewStoreRoutes";
 import Colors from "../constants/colors";
 import BackButton from "../components/ui/BackButton";
 import RegisterScreen from "../screens/onboarding-screens/RegisterScreen";
 import { ConfirmOtpScreen } from "../screens/onboarding-screens/ConfirmOtpScreen";
 import SettingsButton from "../components/ui/SettingsButton";
 import RestaurantScreen from "../screens/affiliate-store-manager/restaurantscreen";
+import { AffiliateOrdersStack } from "../screens/orders-manager/routes/AffiliateOrdersStack";
 
 type rootStackParams = {
   Home: undefined;
@@ -128,7 +127,7 @@ const Appstack = ({ ONBOARDED }: { ONBOARDED: boolean }) => {
           // headerShown: false,
         }}
         name="OrdersManager"
-        component={OrdersManager}
+        component={AffiliateOrdersStack}
       />
       <Stack.Screen
         options={{

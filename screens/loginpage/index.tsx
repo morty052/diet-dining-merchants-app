@@ -11,12 +11,18 @@ import Colors from "../../constants/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SEMI_BOLD } from "../../constants/fontNames";
 import { useSignIn, useUser } from "@clerk/clerk-expo";
+import * as Linking from "expo-linking";
 
 type Props = {};
+
+async function handleOpenSignup() {
+  await Linking.openURL("https://merchants.dietdining.org");
+}
 
 export const LoginPage = ({ navigation }: any) => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [error, setError] = React.useState("");
 
   const { isLoaded, signIn, setActive } = useSignIn();
   const { isSignedIn } = useUser();
@@ -47,8 +53,9 @@ export const LoginPage = ({ navigation }: any) => {
       navigation.navigate("OtpScreen", {
         emailAddress,
       });
-    } catch (error) {
-      console.error({ error });
+    } catch (err: any) {
+      console.error(JSON.stringify(err.errors, null, 2));
+      setError(err.errors[0].longMessage.replace("_", " "));
     }
   }
 
@@ -68,7 +75,7 @@ export const LoginPage = ({ navigation }: any) => {
                     fontSize: 28,
                   }}
                 >
-                  Welcome Back
+                  Welcome
                 </Text>
                 <Text
                   style={{
@@ -85,6 +92,7 @@ export const LoginPage = ({ navigation }: any) => {
                   Enter the email linked to your account
                 </Text>
                 <TextInput
+                  onFocus={() => setError("")}
                   value={email}
                   onChangeText={(text) => setEmail(text)}
                   style={styles.input}
@@ -100,6 +108,7 @@ export const LoginPage = ({ navigation }: any) => {
                   Enter account password
                 </Text>
                 <TextInput
+                  onFocus={() => setError("")}
                   value={password}
                   onChangeText={(text) => setPassword(text)}
                   secureTextEntry
@@ -116,8 +125,13 @@ export const LoginPage = ({ navigation }: any) => {
               <Pressable onPress={handleNext} style={styles.button}>
                 <Text>Continue</Text>
               </Pressable>
+              {error && (
+                <Text style={{ color: "red", textAlign: "center" }}>
+                  {error}
+                </Text>
+              )}
               <Text
-                onPress={() => navigation.navigate("Register")}
+                onPress={async () => await handleOpenSignup()}
                 style={{
                   color: Colors.link,
                   textAlign: "center",

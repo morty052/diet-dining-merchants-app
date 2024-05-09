@@ -77,6 +77,7 @@ export function ConfirmOtpScreen({ route, navigation }: any) {
         setOTP("");
         // * REMOVE THE SIGNED OUT ITEM THAT TRIGGERS NAVIGATION BACK TO LOGIN SCREEN
         removeItem("SignedOut");
+        // * NAVIGATE TO UNLOCK SCREEN
         navigation.navigate("Unlock");
       }
 
